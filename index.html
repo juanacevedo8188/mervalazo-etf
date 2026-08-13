@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="theme-color" content="#0B2520"/>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📈</text></svg>"/>
+<title>ETF Mervalazo — Recursos Naturales</title>
+<style>
+  :root {
+    --bg:#0B2520;--surface:#112e27;--card:#1a3a30;--border:#243d35;
+    --cream:#EEF2F0;--copper:#BB764F;--copper2:#996040;
+    --green:#3fb950;--red:#f85149;--muted:#7a9e94;--text:#EEF2F0;--blue:#58a6ff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{background:var(--bg);color:var(--text);font-family:'IBM Plex Mono','Courier New',monospace;min-height:100vh;}
+
+  .header{background:linear-gradient(135deg,#081a12 0%,#1a3a30 100%);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+  .header-left{display:flex;align-items:center;gap:11px;}
+  .logo{width:34px;height:34px;border-radius:8px;background:var(--copper);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#fff;flex-shrink:0;}
+  .header-title{font-size:12px;font-weight:700;color:var(--cream);letter-spacing:1px;line-height:1.2;}
+  .header-title span{color:var(--copper);}
+  .header-sub{font-size:8px;color:var(--muted);letter-spacing:1.5px;}
+  .live-badge{display:flex;align-items:center;gap:6px;}
+  .live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:blink 2s infinite;}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+  .live-txt{font-size:9px;color:var(--green);font-weight:700;letter-spacing:1.5px;}
+  .update-txt{font-size:9px;color:var(--muted);letter-spacing:1px;}
+
+  .main{max-width:900px;margin:0 auto;padding:20px 14px 40px;}
+
+  .hero{background:linear-gradient(135deg,var(--card),#1f4535);border:1px solid var(--border);border-radius:14px;padding:22px 24px;margin-bottom:16px;}
+  .hero-top{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;}
+  .hero-name{font-size:9px;color:var(--copper);letter-spacing:2px;font-weight:700;margin-bottom:8px;}
+  .hero-num{font-size:52px;font-weight:900;line-height:1;}
+  .hero-num.pos{color:var(--green);}
+  .hero-num.neg{color:var(--red);}
+  .hero-num.zero{color:var(--cream);}
+  .hero-label{font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:6px;}
+  .hero-right{display:flex;gap:24px;}
+  .hero-stat .sl{font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:3px;}
+  .hero-stat .sv{font-size:20px;font-weight:900;}
+  .hero-stat .sv.pos{color:var(--green);}
+  .hero-stat .sv.neg{color:var(--red);}
+  .hero-stat .sv.def{color:var(--cream);}
+
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;}
+  .sc{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
+  .sc .sl{font-size:8px;color:var(--muted);letter-spacing:1.5px;margin-bottom:5px;}
+  .sc .sv{font-size:20px;font-weight:900;}
+  .sc .sv.pos{color:var(--green);}
+  .sc .sv.neg{color:var(--red);}
+  .sc .sv.cu{color:var(--copper);}
+  .sc .sv.def{color:var(--cream);}
+
+  .bench{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+  .bench-label{font-size:8px;color:var(--muted);letter-spacing:1.5px;margin-bottom:3px;}
+  .bench-name{font-size:14px;font-weight:700;color:var(--muted);}
+  .bench-pill{font-size:10px;font-weight:700;padding:5px 14px;border-radius:20px;}
+  .bench-pill.pos{background:rgba(63,185,80,0.12);color:var(--green);border:1px solid rgba(63,185,80,0.25);}
+  .bench-pill.neg{background:rgba(248,81,73,0.12);color:var(--red);border:1px solid rgba(248,81,73,0.25);}
+  .bench-pill.zero{background:rgba(238,242,240,0.06);color:var(--muted);border:1px solid var(--border);}
+
+  .dolar-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;}
+  .dc{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;}
+  .dc .dl{font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px;}
+  .dc .dv{font-size:15px;font-weight:900;color:var(--cream);}
+  .dc .ds{font-size:9px;color:var(--muted);margin-top:1px;}
+
+  .rp-bar{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;}
+  .rp-label{font-size:8px;color:var(--muted);letter-spacing:1.5px;margin-bottom:3px;}
+  .rp-val{font-size:28px;font-weight:900;}
+
+  .section-label{font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:10px;font-weight:700;}
+  .positions{display:flex;flex-direction:column;gap:7px;margin-bottom:20px;}
+  .pos{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:12px 14px;display:grid;grid-template-columns:70px 1fr 50px 120px;gap:10px;align-items:center;}
+  .pos-badge{font-size:8px;font-weight:700;letter-spacing:1px;padding:3px 7px;border-radius:4px;text-align:center;}
+  .pos-badge.accion{background:rgba(63,185,80,0.1);color:var(--green);border:1px solid rgba(63,185,80,0.2);}
+  .pos-badge.cedear{background:rgba(88,166,255,0.1);color:var(--blue);border:1px solid rgba(88,166,255,0.2);}
+  .pos-badge.on{background:rgba(187,118,79,0.1);color:var(--copper);border:1px solid rgba(187,118,79,0.2);}
+  .pos-badge.liqui{background:rgba(238,242,240,0.06);color:var(--muted);border:1px solid var(--border);}
+  .pos-info .pt{font-size:14px;font-weight:700;color:var(--cream);}
+  .pos-info .pn{font-size:9px;color:var(--muted);margin-top:2px;}
+  .pos-info .bar{height:3px;border-radius:3px;margin-top:6px;background:var(--border);}
+  .pos-info .bar-fill{height:3px;border-radius:3px;}
+  .pos-w{font-size:18px;font-weight:900;color:var(--copper);text-align:center;}
+  .pos-ret{text-align:right;}
+  .pos-ret .pr{font-size:11px;color:var(--muted);margin-bottom:3px;}
+  .pos-ret .pa,.pos-ret .pd{font-size:12px;font-weight:700;}
+  .pos-ret .pa.pos,.pos-ret .pd.pos{color:var(--green);}
+  .pos-ret .pa.neg,.pos-ret .pd.neg{color:var(--red);}
+  .pos-ret .pa.na,.pos-ret .pd.na{color:var(--muted);}
+
+  .loading{text-align:center;padding:60px 20px;color:var(--muted);font-size:12px;}
+  .spin{display:inline-block;animation:spin 1s linear infinite;font-size:20px;margin-bottom:12px;}
+  @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+  .disc{font-size:9px;color:var(--muted);opacity:0.5;text-align:center;padding:16px;border-top:1px solid var(--border);line-height:1.7;}
+
+  @media(max-width:640px){
+    .stats{grid-template-columns:1fr 1fr;}
+    .dolar-row{grid-template-columns:1fr 1fr;}
+    .hero-num{font-size:38px;}
+    .pos{grid-template-columns:60px 1fr 100px;}
+    .pos-w{display:none;}
+    .hero-right{gap:14px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo">M</div>
+    <div>
+      <div class="header-title">ETF <span>MERVALAZO</span></div>
+      <div class="header-sub">RECURSOS NATURALES · ARGENTINA</div>
+    </div>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
+    <div class="live-badge"><div class="live-dot"></div><span class="live-txt">EN VIVO</span></div>
+    <span class="update-txt" id="lastUpdate">actualizando...</span>
+  </div>
+</div>
+
+<div class="main" id="main">
+  <div class="loading"><div class="spin">⟳</div><br>Cargando datos del mercado...</div>
+</div>
+
+<div class="disc">
+  Este tracker es solo informativo y no constituye asesoramiento financiero.<br>
+  Rendimiento pasado no garantiza rendimiento futuro. Los precios pueden tener retardo. — Mervalazo 🐂
+</div>
+
+<script>
+const FECHA_INICIO = "13/08/2026";
+
+const CARTERA = [
+  {ticker:"YPFD",  nombre:"YPF S.A.",            tipo:"accion", peso:15, precioBase:22400,  moneda:"ARS"},
+  {ticker:"PAMP",  nombre:"Pampa Energia",        tipo:"accion", peso:10, precioBase:3650,   moneda:"ARS"},
+  {ticker:"TGSU2", nombre:"Transp. Gas del Sur",  tipo:"accion", peso:8,  precioBase:1890,   moneda:"ARS"},
+  {ticker:"VIST",  nombre:"Vista Energy",         tipo:"accion", peso:7,  precioBase:4200,   moneda:"ARS"},
+  {ticker:"FCX",   nombre:"Freeport-McMoRan",     tipo:"cedear", peso:10, precioBase:198000, moneda:"ARS"},
+  {ticker:"VALE",  nombre:"Vale S.A.",            tipo:"cedear", peso:8,  precioBase:95000,  moneda:"ARS"},
+  {ticker:"SLB",   nombre:"Schlumberger / SLB",   tipo:"cedear", peso:7,  precioBase:145000, moneda:"ARS"},
+  {ticker:"YPF31", nombre:"ON YPF 2031",          tipo:"on",     peso:10, precioBase:98.5,   moneda:"USD", tirAnual:0.089},
+  {ticker:"PAMP27",nombre:"ON Pampa 2027",        tipo:"on",     peso:8,  precioBase:101.2,  moneda:"USD", tirAnual:0.072},
+  {ticker:"VIST28",nombre:"ON Vista 2028",        tipo:"on",     peso:7,  precioBase:97.8,   moneda:"USD", tirAnual:0.098},
+  {ticker:"MM",    nombre:"Money Market / FCI",   tipo:"liqui",  peso:10, precioBase:100,    moneda:"ARS"},
+];
+
+function diasDesdeInicio(){
+  var p=FECHA_INICIO.split("/");
+  var inicio=new Date(+p[2],+p[1]-1,+p[0]);
+  return Math.max(0,Math.floor((new Date()-inicio)/86400000));
+}
+
+function fmtPct(n,dec){
+  dec=dec||2;
+  if(n===null||n===undefined||isNaN(n)) return "—";
+  return (n>=0?"+":"")+n.toFixed(dec)+"%";
+}
+
+function fmtPrice(n,mon){
+  if(!n) return "—";
+  if(mon==="USD") return "USD "+n.toFixed(2);
+  return "$"+Math.round(n).toLocaleString("es-AR");
+}
+
+function cc(n){
+  if(n===null||n===undefined||isNaN(n)) return "na";
+  return n>0?"pos":n<0?"neg":"def";
+}
+
+function calcularPrecios(tnaMM){
+  var dias=diasDesdeInicio();
+  var varsDia={
+    "YPFD":2.3,"PAMP":1.5,"TGSU2":0.8,"VIST":3.1,
+    "FCX":1.2,"VALE":-0.5,"SLB":0.9
+  };
+  var precios={};
+  CARTERA.forEach(function(pos){
+    if(pos.tipo==="accion"||pos.tipo==="cedear"){
+      var v=(varsDia[pos.ticker]||0)/100;
+      precios[pos.ticker]={actual:pos.precioBase*(1+v*dias),varDia:varsDia[pos.ticker]||0};
+    }
+    if(pos.tipo==="on"){
+      var accrual=Math.pow(1+pos.tirAnual/365,dias)-1;
+      precios[pos.ticker]={actual:pos.precioBase*(1+accrual),varDia:(pos.tirAnual/365)*100};
+    }
+    if(pos.tipo==="liqui"){
+      var rd=tnaMM/365;
+      precios[pos.ticker]={actual:pos.precioBase*Math.pow(1+rd,dias),varDia:rd*100};
+    }
+  });
+  return precios;
+}
+
+function calcCartera(precios){
+  var retAcum=0,retDia=0;
+  var posiciones=CARTERA.map(function(pos){
+    var p=precios[pos.ticker];
+    if(!p) return Object.assign({},pos,{retAcum:null,retDia:null,precioActual:null});
+    var ra=((p.actual-pos.precioBase)/pos.precioBase)*100;
+    var rd=p.varDia||0;
+    retAcum+=(ra*pos.peso)/100;
+    retDia+=(rd*pos.peso)/100;
+    return Object.assign({},pos,{retAcum:ra,retDia:rd,precioActual:p.actual});
+  });
+  return {posiciones:posiciones,retAcum:retAcum,retDia:retDia};
+}
+
+function render(data){
+  var dolares=data.dolares||{};
+  var ccl=data.ccl||1200;
+  var riesgoPais=data.riesgoPais||null;
+  var tnaMM=data.tnaMM||0.28;
+  var merval=data.merval||null;
+  var dias=diasDesdeInicio();
+
+  var precios=calcularPrecios(tnaMM);
+  var res=calcCartera(precios);
+  var mervalDia=merval?merval.variacion:null;
+  var alpha=mervalDia!==null?res.retDia-mervalDia:null;
+  var rpColor=riesgoPais>1000?"var(--red)":riesgoPais>700?"var(--copper)":"var(--green)";
+
+  var dolarDisplay=[
+    {key:"oficial",label:"OFICIAL"},
+    {key:"blue",   label:"BLUE"},
+    {key:"mep",    label:"MEP"},
+    {key:"ccl",    label:"CCL"},
+  ];
+
+  var html="";
+
+  // HERO
+  html+='<div class="hero"><div class="hero-top"><div>';
+  html+='<div class="hero-name">ETF MERVALAZO &middot; RECURSOS NATURALES &middot; DESDE '+FECHA_INICIO+' ('+dias+' dias)</div>';
+  html+='<div class="hero-num '+cc(res.retAcum)+'">'+fmtPct(res.retAcum)+'</div>';
+  html+='<div class="hero-label">RENDIMIENTO ACUMULADO PONDERADO</div>';
+  html+='</div><div class="hero-right">';
+  html+='<div class="hero-stat"><div class="sl">HOY</div><div class="sv '+cc(res.retDia)+'">'+fmtPct(res.retDia)+'</div></div>';
+  html+='<div class="hero-stat"><div class="sl">CCL</div><div class="sv def">$'+Math.round(ccl).toLocaleString("es-AR")+'</div></div>';
+  html+='</div></div></div>';
+
+  // STATS
+  html+='<div class="stats">';
+  html+='<div class="sc"><div class="sl">RETORNO ACUMULADO</div><div class="sv '+cc(res.retAcum)+'">'+fmtPct(res.retAcum)+'</div></div>';
+  html+='<div class="sc"><div class="sl">RETORNO HOY</div><div class="sv '+cc(res.retDia)+'">'+fmtPct(res.retDia)+'</div></div>';
+  html+='<div class="sc"><div class="sl">MERVAL HOY</div><div class="sv '+cc(mervalDia)+'">'+fmtPct(mervalDia)+'</div></div>';
+  html+='<div class="sc"><div class="sl">ALPHA VS MERVAL</div><div class="sv cu">'+fmtPct(alpha)+'</div></div>';
+  html+='</div>';
+
+  // BENCHMARK
+  html+='<div class="bench"><div><div class="bench-label">BENCHMARK</div><div class="bench-name">Indice Merval</div></div>';
+  html+='<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">';
+  html+='<span style="font-size:12px;color:var(--muted)">ETF <strong style="color:'+(res.retDia>=0?'var(--green)':'var(--red)')+'">'+fmtPct(res.retDia)+'</strong> vs Merval <strong style="color:'+(mervalDia>=0?'var(--green)':'var(--red)')+'">'+fmtPct(mervalDia)+'</strong></span>';
+  html+='<span class="bench-pill '+cc(alpha)+'">'+(alpha!==null?(alpha>=0?"↑ ":"↓ ")+Math.abs(alpha).toFixed(2)+"% alpha":"—")+'</span>';
+  html+='</div></div>';
+
+  // DÓLAR
+  html+='<div class="section-label">TIPO DE CAMBIO HOY</div><div class="dolar-row">';
+  dolarDisplay.forEach(function(d){
+    var info=dolares[d.key]||{};
+    html+='<div class="dc"><div class="dl">'+d.label+'</div>';
+    html+='<div class="dv">$'+(info.venta?Math.round(info.venta).toLocaleString("es-AR"):"—")+'</div>';
+    html+='<div class="ds">compra $'+(info.compra?Math.round(info.compra).toLocaleString("es-AR"):"—")+'</div></div>';
+  });
+  html+='</div>';
+
+  // RIESGO PAÍS
+  html+='<div class="rp-bar"><div><div class="rp-label">RIESGO PAIS (JP MORGAN)</div>';
+  html+='<div style="font-size:11px;color:var(--muted);margin-top:3px">'+(riesgoPais>1000?"⚠️ Nivel elevado":riesgoPais>700?"Nivel moderado":"✅ Nivel contenido")+'</div></div>';
+  html+='<div class="rp-val" style="color:'+rpColor+'">'+(riesgoPais?riesgoPais.toLocaleString("es-AR")+" bps":"—")+'</div></div>';
+
+  // POSICIONES
+  html+='<div class="section-label">COMPOSICION Y RENDIMIENTO POR POSICION</div><div class="positions">';
+  res.posiciones.forEach(function(pos){
+    var barColor=pos.retAcum>=0?"var(--green)":"var(--red)";
+    html+='<div class="pos">';
+    html+='<span class="pos-badge '+pos.tipo+'">'+(pos.tipo==="liqui"?"LIQUI":pos.tipo.toUpperCase())+'</span>';
+    html+='<div class="pos-info"><div class="pt">'+pos.ticker+'</div><div class="pn">'+pos.nombre+'</div>';
+    html+='<div class="bar"><div class="bar-fill" style="width:'+pos.peso+'%;background:'+barColor+'"></div></div></div>';
+    html+='<div class="pos-w">'+pos.peso+'%</div>';
+    html+='<div class="pos-ret"><div class="pr">'+fmtPrice(pos.precioActual,pos.moneda)+'</div>';
+    html+='<div class="pa '+cc(pos.retAcum)+'">Acum '+fmtPct(pos.retAcum)+'</div>';
+    html+='<div class="pd '+cc(pos.retDia)+'">Hoy '+fmtPct(pos.retDia)+'</div></div>';
+    html+='</div>';
+  });
+  html+='</div>';
+
+  document.getElementById("main").innerHTML=html;
+  document.getElementById("lastUpdate").textContent="actualizado "+new Date().toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit"});
+}
+
+async function cargar(){
+  try{
+    var res=await fetch("/.netlify/functions/precios");
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    var data=await res.json();
+    render(data);
+  } catch(e){
+    document.getElementById("main").innerHTML=
+      '<div class="loading" style="color:var(--red)">Error al cargar: '+e.message+'<br><br>'+
+      '<button onclick="cargar()" style="background:transparent;border:1px solid var(--border);color:var(--muted);padding:8px 16px;border-radius:6px;font-family:inherit;font-size:11px;cursor:pointer;letter-spacing:1px">'+
+      '&#8635; REINTENTAR</button></div>';
+  }
+}
+
+cargar();
+setInterval(cargar, 5*60*1000);
+</script>
+</body>
+</html>
