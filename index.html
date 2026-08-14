@@ -135,24 +135,59 @@
 </div>
 
 <script>
-const FECHA_INICIO = "13/08/2026";
+// ═══════════════════════════════════════════════════════════════
+// CARTERA — precioBase se carga automáticamente desde Yahoo Finance
+// el primer día y se guarda en localStorage. No tocar manualmente.
+// ═══════════════════════════════════════════════════════════════
 
 const CARTERA = [
-  {ticker:"YPFD",  nombre:"YPF S.A.",            tipo:"accion", peso:15, precioBase:7825,   moneda:"ARS"},
-  {ticker:"PAMP",  nombre:"Pampa Energia",        tipo:"accion", peso:10, precioBase:5000,   moneda:"ARS"},
-  {ticker:"TGSU2", nombre:"Transp. Gas del Sur",  tipo:"accion", peso:8,  precioBase:3200,   moneda:"ARS"},
-  {ticker:"VIST",  nombre:"Vista Energy",         tipo:"accion", peso:7,  precioBase:9800,   moneda:"ARS"},
-  {ticker:"FCX",   nombre:"Freeport-McMoRan",     tipo:"cedear", peso:10, precioBase:198000, moneda:"ARS"},
-  {ticker:"VALE",  nombre:"Vale S.A.",            tipo:"cedear", peso:8,  precioBase:95000,  moneda:"ARS"},
-  {ticker:"SLB",   nombre:"Schlumberger / SLB",   tipo:"cedear", peso:7,  precioBase:145000, moneda:"ARS"},
-  {ticker:"YPF31", nombre:"ON YPF 2031",          tipo:"on",     peso:10, precioBase:98.5,   moneda:"USD", tirAnual:0.089},
-  {ticker:"PAMP27",nombre:"ON Pampa 2027",        tipo:"on",     peso:8,  precioBase:101.2,  moneda:"USD", tirAnual:0.072},
-  {ticker:"VIST28",nombre:"ON Vista 2028",        tipo:"on",     peso:7,  precioBase:97.8,   moneda:"USD", tirAnual:0.098},
-  {ticker:"MM",    nombre:"Money Market / FCI",   tipo:"liqui",  peso:10, precioBase:100,    moneda:"ARS"},
+  {ticker:"YPFD",  nombre:"YPF S.A.",            tipo:"accion", peso:15, moneda:"ARS"},
+  {ticker:"PAMP",  nombre:"Pampa Energia",        tipo:"accion", peso:10, moneda:"ARS"},
+  {ticker:"TGSU2", nombre:"Transp. Gas del Sur",  tipo:"accion", peso:8,  moneda:"ARS"},
+  {ticker:"VIST",  nombre:"Vista Energy",         tipo:"accion", peso:7,  moneda:"ARS"},
+  {ticker:"FCX",   nombre:"Freeport-McMoRan",     tipo:"cedear", peso:10, moneda:"ARS"},
+  {ticker:"VALE",  nombre:"Vale S.A.",            tipo:"cedear", peso:8,  moneda:"ARS"},
+  {ticker:"SLB",   nombre:"Schlumberger / SLB",   tipo:"cedear", peso:7,  moneda:"ARS"},
+  {ticker:"YPF31", nombre:"ON YPF 2031",          tipo:"on",     peso:10, moneda:"USD", tirAnual:0.089},
+  {ticker:"PAMP27",nombre:"ON Pampa 2027",        tipo:"on",     peso:8,  moneda:"USD", tirAnual:0.072},
+  {ticker:"VIST28",nombre:"ON Vista 2028",        tipo:"on",     peso:7,  moneda:"USD", tirAnual:0.098},
+  {ticker:"MM",    nombre:"Money Market / FCI",   tipo:"liqui",  peso:10, moneda:"ARS"},
 ];
 
+// ── PRECIOS BASE — se cargan desde Yahoo el día 1 y se persisten ──────────
+function getPreciosBase() {
+  try {
+    var stored = localStorage.getItem("mervalazo_etf_base");
+    if (stored) return JSON.parse(stored);
+  } catch(e) {}
+  return null;
+}
+
+function setPreciosBase(precios, fecha) {
+  try {
+    localStorage.setItem("mervalazo_etf_base", JSON.stringify(precios));
+    localStorage.setItem("mervalazo_etf_fecha", fecha);
+  } catch(e) {}
+}
+
+function getFechaInicio() {
+  try {
+    return localStorage.getItem("mervalazo_etf_fecha") || null;
+  } catch(e) { return null; }
+}
+
+function resetBase() {
+  try {
+    localStorage.removeItem("mervalazo_etf_base");
+    localStorage.removeItem("mervalazo_etf_fecha");
+    location.reload();
+  } catch(e) {}
+}
+
 function diasDesdeInicio(){
-  var p=FECHA_INICIO.split("/");
+  var fecha = getFechaInicio();
+  if (!fecha) return 0;
+  var p=fecha.split("/");
   var inicio=new Date(+p[2],+p[1]-1,+p[0]);
   return Math.max(0,Math.floor((new Date()-inicio)/86400000));
 }
@@ -176,24 +211,28 @@ function cc(n){
 
 function calcularPrecios(preciosAPI, tnaMM){
   var dias=diasDesdeInicio();
+  var base=getPreciosBase()||{};
   var precios={};
   CARTERA.forEach(function(pos){
     if(pos.tipo==="accion"||pos.tipo==="cedear"){
       var api=preciosAPI&&preciosAPI[pos.ticker];
-      if(api&&api.actual){
-        precios[pos.ticker]={actual:api.actual,varDia:api.varDia||0};
-      } else {
-        // Fallback al precio base si no hay dato de API
-        precios[pos.ticker]={actual:pos.precioBase,varDia:0};
-      }
+      var precioActual=api&&api.actual ? api.actual : (base[pos.ticker]||0);
+      var precioBase=base[pos.ticker]||precioActual;
+      precios[pos.ticker]={
+        actual:precioActual,
+        base:precioBase,
+        varDia:api?api.varDia||0:0
+      };
     }
     if(pos.tipo==="on"){
+      var baseON=base[pos.ticker]||pos.precioBase||98;
       var accrual=Math.pow(1+pos.tirAnual/365,dias)-1;
-      precios[pos.ticker]={actual:pos.precioBase*(1+accrual),varDia:(pos.tirAnual/365)*100};
+      precios[pos.ticker]={actual:baseON*(1+accrual),base:baseON,varDia:(pos.tirAnual/365)*100};
     }
     if(pos.tipo==="liqui"){
       var rd=tnaMM/365;
-      precios[pos.ticker]={actual:pos.precioBase*Math.pow(1+rd,dias),varDia:rd*100};
+      var baseMM=base[pos.ticker]||100;
+      precios[pos.ticker]={actual:baseMM*Math.pow(1+rd,dias),base:baseMM,varDia:rd*100};
     }
   });
   return precios;
@@ -203,12 +242,12 @@ function calcCartera(precios){
   var retAcum=0,retDia=0;
   var posiciones=CARTERA.map(function(pos){
     var p=precios[pos.ticker];
-    if(!p) return Object.assign({},pos,{retAcum:null,retDia:null,precioActual:null});
-    var ra=((p.actual-pos.precioBase)/pos.precioBase)*100;
+    if(!p||!p.actual||!p.base) return Object.assign({},pos,{retAcum:null,retDia:null,precioActual:null});
+    var ra=((p.actual-p.base)/p.base)*100;
     var rd=p.varDia||0;
     retAcum+=(ra*pos.peso)/100;
     retDia+=(rd*pos.peso)/100;
-    return Object.assign({},pos,{retAcum:ra,retDia:rd,precioActual:p.actual});
+    return Object.assign({},pos,{retAcum:ra,retDia:rd,precioActual:p.actual,precioBase:p.base});
   });
   return {posiciones:posiciones,retAcum:retAcum,retDia:retDia};
 }
@@ -238,7 +277,8 @@ function render(data){
 
   // HERO
   html+='<div class="hero"><div class="hero-top"><div>';
-  html+='<div class="hero-name">ETF MERVALAZO &middot; RECURSOS NATURALES &middot; DESDE '+FECHA_INICIO+' ('+dias+' dias)</div>';
+  var fechaInicio=getFechaInicio()||"—";
+  html+='<div class="hero-name">ETF MERVALAZO &middot; RECURSOS NATURALES &middot; DESDE '+fechaInicio+' ('+dias+' dias) <span onclick="resetBase()" style="cursor:pointer;opacity:0.4;font-size:8px;margin-left:8px" title="Resetear precio base">⟳ reset</span></div>';
   html+='<div class="hero-num '+cc(res.retAcum)+'">'+fmtPct(res.retAcum)+'</div>';
   html+='<div class="hero-label">RENDIMIENTO ACUMULADO PONDERADO</div>';
   html+='</div><div class="hero-right">';
@@ -301,6 +341,25 @@ async function cargar(){
     var res=await fetch("/.netlify/functions/precios");
     if(!res.ok) throw new Error("HTTP "+res.status);
     var data=await res.json();
+
+    // Si no hay precios base guardados, guardar los actuales como base (día 1)
+    if(!getPreciosBase() && data.precios) {
+      var base={};
+      var hoy=new Date();
+      var dd=String(hoy.getDate()).padStart(2,"0");
+      var mm=String(hoy.getMonth()+1).padStart(2,"0");
+      var yyyy=hoy.getFullYear();
+      var fechaHoy=dd+"/"+mm+"/"+yyyy;
+      CARTERA.forEach(function(pos){
+        if((pos.tipo==="accion"||pos.tipo==="cedear") && data.precios[pos.ticker]) {
+          base[pos.ticker]=data.precios[pos.ticker].actual;
+        }
+        if(pos.tipo==="on") base[pos.ticker]=pos.precioBase||98.5;
+        if(pos.tipo==="liqui") base[pos.ticker]=100;
+      });
+      setPreciosBase(base, fechaHoy);
+    }
+
     render(data);
   } catch(e){
     document.getElementById("main").innerHTML=
@@ -315,3 +374,4 @@ setInterval(cargar, 5*60*1000);
 </script>
 </body>
 </html>
+
