@@ -138,15 +138,16 @@
 const FECHA_INICIO = "13/08/2026";
 
 const CARTERA = [
-  {ticker:"YPFD",  nombre:"YPF S.A.",            tipo:"accion", peso:15, precioBase:7825,  moneda:"ARS"},
+  {ticker:"YPFD",  nombre:"YPF S.A.",            tipo:"accion", peso:15, precioBase:7825,   moneda:"ARS"},
   {ticker:"PAMP",  nombre:"Pampa Energia",        tipo:"accion", peso:10, precioBase:5000,   moneda:"ARS"},
-  {ticker:"TGSU2", nombre:"Transp. Gas del Sur",  tipo:"accion", peso:8,  precioBase:8860,   moneda:"ARS"},
-  {ticker:"VIST",  nombre:"Vista Energy",         tipo:"accion", peso:7,  precioBase:34925,   moneda:"ARS"},
-  {ticker:"FCX",   nombre:"Freeport-McMoRan",     tipo:"cedear", peso:10, precioBase:35225, moneda:"ARS"},
-  {ticker:"VALE",  nombre:"Vale S.A.",            tipo:"cedear", peso:8,  precioBase:10900,  moneda:"ARS"},
-  {ticker:"SLB",   nombre:"Schlumberger / SLB",   tipo:"cedear", peso:7,  precioBase:27350, moneda:"ARS"},
-  {ticker:"YMCXO", nombre:"ON YPF 2031",          tipo:"on",     peso:10, precioBase:174600,   moneda:"ARS", tirAnual:0.089},
-  {ticker:"VIST28",nombre:"ON Vista 2028",        tipo:"on",     peso:7,  precioBase:141100,   moneda:"ARS", tirAnual:0.098},
+  {ticker:"TGSU2", nombre:"Transp. Gas del Sur",  tipo:"accion", peso:8,  precioBase:3200,   moneda:"ARS"},
+  {ticker:"VIST",  nombre:"Vista Energy",         tipo:"accion", peso:7,  precioBase:9800,   moneda:"ARS"},
+  {ticker:"FCX",   nombre:"Freeport-McMoRan",     tipo:"cedear", peso:10, precioBase:198000, moneda:"ARS"},
+  {ticker:"VALE",  nombre:"Vale S.A.",            tipo:"cedear", peso:8,  precioBase:95000,  moneda:"ARS"},
+  {ticker:"SLB",   nombre:"Schlumberger / SLB",   tipo:"cedear", peso:7,  precioBase:145000, moneda:"ARS"},
+  {ticker:"YPF31", nombre:"ON YPF 2031",          tipo:"on",     peso:10, precioBase:98.5,   moneda:"USD", tirAnual:0.089},
+  {ticker:"PAMP27",nombre:"ON Pampa 2027",        tipo:"on",     peso:8,  precioBase:101.2,  moneda:"USD", tirAnual:0.072},
+  {ticker:"VIST28",nombre:"ON Vista 2028",        tipo:"on",     peso:7,  precioBase:97.8,   moneda:"USD", tirAnual:0.098},
   {ticker:"MM",    nombre:"Money Market / FCI",   tipo:"liqui",  peso:10, precioBase:100,    moneda:"ARS"},
 ];
 
@@ -173,17 +174,18 @@ function cc(n){
   return n>0?"pos":n<0?"neg":"def";
 }
 
-function calcularPrecios(tnaMM){
+function calcularPrecios(preciosAPI, tnaMM){
   var dias=diasDesdeInicio();
-  var varsDia={
-    "YPFD":2.3,"PAMP":1.5,"TGSU2":0.8,"VIST":3.1,
-    "FCX":1.2,"VALE":-0.5,"SLB":0.9
-  };
   var precios={};
   CARTERA.forEach(function(pos){
     if(pos.tipo==="accion"||pos.tipo==="cedear"){
-      var v=(varsDia[pos.ticker]||0)/100;
-      precios[pos.ticker]={actual:pos.precioBase*(1+v*dias),varDia:varsDia[pos.ticker]||0};
+      var api=preciosAPI&&preciosAPI[pos.ticker];
+      if(api&&api.actual){
+        precios[pos.ticker]={actual:api.actual,varDia:api.varDia||0};
+      } else {
+        // Fallback al precio base si no hay dato de API
+        precios[pos.ticker]={actual:pos.precioBase,varDia:0};
+      }
     }
     if(pos.tipo==="on"){
       var accrual=Math.pow(1+pos.tirAnual/365,dias)-1;
@@ -219,7 +221,7 @@ function render(data){
   var merval=data.merval||null;
   var dias=diasDesdeInicio();
 
-  var precios=calcularPrecios(tnaMM);
+  var precios=calcularPrecios(data.precios||{}, tnaMM);
   var res=calcCartera(precios);
   var mervalDia=merval?merval.variacion:null;
   var alpha=mervalDia!==null?res.retDia-mervalDia:null;
